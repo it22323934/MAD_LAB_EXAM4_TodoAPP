@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import com.example.todoapp.adapters.TaskRVViewBindingAdapter
 import com.example.todoapp.adapters.TaskRecyclerViewAdapter
 import com.example.todoapp.databinding.ActivityMainBinding
 import com.example.todoapp.models.Task
@@ -167,7 +168,7 @@ class MainActivity : AppCompatActivity() {
 
         val updateTaskBtn = updateTaskDialog.findViewById<Button>(R.id.updateTaskBtn)
 
-        val taskRecyclerViewAdapter = TaskRecyclerViewAdapter { type, position, task ->
+        val taskRecyclerViewAdapter = TaskRVViewBindingAdapter { type, position, task ->
             if (type == "delete") {
                 taskViewModal.deleteTaskUsingID(task.id)
                     .observe(this) {
@@ -240,7 +241,7 @@ class MainActivity : AppCompatActivity() {
         callGetTaskList(taskRecyclerViewAdapter)
     }
 
-    private fun callGetTaskList(taskRecyclerViewAdapter: TaskRecyclerViewAdapter) {
+    private fun callGetTaskList(taskRecyclerViewAdapter: TaskRVViewBindingAdapter) {
         CoroutineScope(Dispatchers.Main).launch {
             loadingDialog.show()
             taskViewModal.getTaskList().collect {

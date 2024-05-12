@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
+import com.example.todoapp.adapters.TaskRecyclerViewAdapter
 import com.example.todoapp.databinding.ActivityMainBinding
 import com.example.todoapp.models.Task
 import com.example.todoapp.utils.LongToastShow
@@ -23,6 +24,9 @@ import com.example.todoapp.utils.validateEditText
 import com.example.todoapp.viewmodals.TaskViewModal
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.Date
 import java.util.UUID
 
@@ -50,9 +54,15 @@ class MainActivity : AppCompatActivity() {
         ViewModelProvider(this)[TaskViewModal::class.java]
     }
 
+    private val taskRecyclerViewAdapter:TaskRecyclerViewAdapter by lazy{
+        TaskRecyclerViewAdapter()
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(mainBinding.root)
+
+        mainBinding.taskRV.adapter=taskRecyclerViewAdapter
+
 
         val addCloseImg = addTaskDialog.findViewById<ImageView>(R.id.closeImg)
         val updateCloseImg = updateTaskDialog.findViewById<ImageView>(R.id.closeImg)
@@ -174,5 +184,33 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+
+        callGetTaskList()
+    }
+
+    private fun callGetTaskList() {
+        CoroutineScope(Dispatchers.Main).launch {
+            loadingDialog.show()
+            taskViewModal.getTaskList().collect {
+                when (it.status) {
+                    Status.LOADING -> {
+                        loadingDialog.show()
+                    }
+
+                    Status.SUCCESS -> {
+                        it.data?.collect {taskList->
+                            loadingDialog.dismiss()
+                            taskRecyclerViewAdapter.addAllTask(taskList)
+                        }
+
+                    }
+
+                    Status.ERROR -> {
+                        loadingDialog.dismiss()
+                        it.message?.let { it1 -> LongToastShow(it1) }
+                    }
+                }
+            }
+        }
     }
 }

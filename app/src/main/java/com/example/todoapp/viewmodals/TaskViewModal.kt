@@ -21,8 +21,8 @@ class TaskViewModal(application: Application):AndroidViewModel(application) {
         return taskRepository.deleteTaskUsingID(taskId)
     }
 
-    fun updateParticularTaskField(taskId:String,title:String,description:String):MutableLiveData<Resource<Int>>{
-        return taskRepository.updateTaskParticularField(taskId,title,description)
+    fun updateParticularTaskField(taskId:String,level:String,title:String,description:String):MutableLiveData<Resource<Int>>{
+        return taskRepository.updateTaskParticularField(taskId,level,title,description)
     }
 
 

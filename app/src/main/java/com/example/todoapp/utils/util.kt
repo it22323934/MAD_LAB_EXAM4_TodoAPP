@@ -6,6 +6,7 @@ import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
 import com.google.android.material.textfield.TextInputLayout
+import java.util.Locale
 
 enum class Status{
     SUCCESS,
@@ -39,6 +40,29 @@ fun validateEditText(editText: EditText, textTextInputLayout: TextInputLayout): 
         }
     }
 }
+
+fun validatePriority(priorityText: String, textTextInputLayout: TextInputLayout): Boolean {
+    val trimmedPriority = priorityText.trim().lowercase()
+    return when (trimmedPriority) {
+        "low" -> {
+            textTextInputLayout.error = null
+            true
+        }
+        "medium" -> {
+            textTextInputLayout.error = null
+            true
+        }
+        "high" -> {
+            textTextInputLayout.error = null
+            true
+        }
+        else -> {
+            textTextInputLayout.error = "Invalid priority"
+            false
+        }
+    }
+}
+
 
 fun clearEditText(editText: EditText, textTextInputLayout: TextInputLayout){
     editText.text=null

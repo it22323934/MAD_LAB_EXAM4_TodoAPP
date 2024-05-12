@@ -43,6 +43,21 @@
             android:orientation="vertical">
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/edTaskLevelL"
+                style="@style/Widget.App.TexInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter The Task Priority Level">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edTaskLevel"
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize"
+                    android:background="#EAE4E8"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.App.TexInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

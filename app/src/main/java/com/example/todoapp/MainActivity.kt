@@ -1,20 +1,14 @@
 package com.example.todoapp
 
-import android.app.Activity
 import android.app.Dialog
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.ViewModelProvider
 import com.example.todoapp.adapters.TaskRVViewBindingAdapter
-import com.example.todoapp.adapters.TaskRecyclerViewAdapter
 import com.example.todoapp.databinding.ActivityMainBinding
 import com.example.todoapp.models.Task
 import com.example.todoapp.utils.LongToastShow
@@ -22,6 +16,7 @@ import com.example.todoapp.utils.Status
 import com.example.todoapp.utils.clearEditText
 import com.example.todoapp.utils.setupDialog
 import com.example.todoapp.utils.validateEditText
+import com.example.todoapp.utils.validatePriority
 import com.example.todoapp.viewmodals.TaskViewModal
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -69,6 +64,20 @@ class MainActivity : AppCompatActivity() {
             addTaskDialog.dismiss()
         }
 
+        val addTaskLevel = addTaskDialog.findViewById<TextInputEditText>(R.id.edTaskLevel)
+        val addTaskLevelL = addTaskDialog.findViewById<TextInputLayout>(R.id.edTaskLevelL)
+
+        addTaskLevel.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun afterTextChanged(s: Editable) {
+                val isEditTextValid = validateEditText(addTaskLevel, addTaskLevelL)
+                if (isEditTextValid) {
+                    validatePriority(addTaskLevel.text.toString(), addTaskLevelL)
+                }
+            }
+        })
+
         val addETTitle = addTaskDialog.findViewById<TextInputEditText>(R.id.edTaskTitle)
         val addETTitleL = addTaskDialog.findViewById<TextInputLayout>(R.id.edTaskTitleL)
 
@@ -92,7 +101,9 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+
         mainBinding.addTaskFABtn.setOnClickListener {
+            clearEditText(addTaskLevel, addTaskLevelL)
             clearEditText(addETTitle, addETTitleL)
             clearEditText(addETDesc, addETDescL)
             addTaskDialog.show()
@@ -102,7 +113,13 @@ class MainActivity : AppCompatActivity() {
         val saveTaskBtn = addTaskDialog.findViewById<Button>(R.id.saveTaskBtn)
 
         saveTaskBtn.setOnClickListener {
-            if (validateEditText(addETTitle, addETTitleL) && validateEditText(
+            if (validateEditText(
+                    addTaskLevel,
+                    addTaskLevelL
+                ) && validatePriority(addTaskLevel.text.toString(), addTaskLevelL) && validateEditText(
+                    addETTitle,
+                    addETTitleL
+                ) && validateEditText(
                     addETDesc,
                     addETDescL
                 )
@@ -112,6 +129,7 @@ class MainActivity : AppCompatActivity() {
                     UUID.randomUUID().toString(),
                     addETTitle.text.toString().trim(),
                     addETDesc.text.toString().trim(),
+                    addTaskLevel.text.toString().trim(),
                     Date()
                 )
                 taskViewModal.insertTask(newTask).observe(this) {
@@ -137,6 +155,20 @@ class MainActivity : AppCompatActivity() {
         }
 
         //Update
+
+        val updateTaskLevel = updateTaskDialog.findViewById<TextInputEditText>(R.id.edTaskLevel)
+        val updateTaskLevelL = updateTaskDialog.findViewById<TextInputLayout>(R.id.edTaskLevelL)
+
+        updateTaskLevel.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+            override fun afterTextChanged(s: Editable) {
+                val isEditTextValid = validateEditText(updateTaskLevel, updateTaskLevelL)
+                if (isEditTextValid) {
+                    validatePriority(updateTaskLevel.text.toString(), updateTaskLevelL)
+                }
+            }
+        })
 
 
         val updateETTitle = updateTaskDialog.findViewById<TextInputEditText>(R.id.edTaskTitle)
@@ -168,7 +200,7 @@ class MainActivity : AppCompatActivity() {
 
         val updateTaskBtn = updateTaskDialog.findViewById<Button>(R.id.updateTaskBtn)
 
-        val taskRecyclerViewAdapter = TaskRVViewBindingAdapter { type, position, task ->
+        val taskRecyclerViewAdapter = TaskRVViewBindingAdapter(this) { type, position, task ->
             if (type == "delete") {
                 taskViewModal.deleteTaskUsingID(task.id)
                     .observe(this) {
@@ -191,16 +223,22 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
             } else if (type == "update") {
+                updateTaskLevel.setText(task.level)
                 updateETTitle.setText(task.title)
                 updateETDesc.setText(task.description)
                 updateTaskBtn.setOnClickListener {
-                    if (validateEditText(updateETTitle, updateETTitleL) && validateEditText(
+                    if (validateEditText(
+                            updateTaskLevel,
+                            updateTaskLevelL
+                        ) && validatePriority(updateTaskLevel.text.toString(), updateTaskLevelL) &&
+                        validateEditText(updateETTitle, updateETTitleL) && validateEditText(
                             updateETDesc,
                             updateETDescL
                         )
                     ) {
                         val updateTask = Task(
                             task.id,
+                            updateTaskLevel.text.toString().trim(),
                             updateETTitle.text.toString().trim(),
                             updateETDesc.text.toString().trim(),
                             Date()
@@ -210,6 +248,7 @@ class MainActivity : AppCompatActivity() {
                         taskViewModal
                             .updateParticularTaskField(
                                 task.id,
+                                updateTaskLevel.text.toString().trim(),
                                 updateETTitle.text.toString().trim(),
                                 updateETDesc.text.toString().trim(),
                             )

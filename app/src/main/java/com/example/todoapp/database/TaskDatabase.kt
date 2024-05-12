@@ -11,7 +11,7 @@ import com.example.todoapp.models.Task
 
 @Database(
     entities = [Task::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(com.example.todoapp.converter.TypeConverter::class)
@@ -30,7 +30,7 @@ abstract class TaskDatabase:RoomDatabase() {
                     context.applicationContext,
                     TaskDatabase::class.java,
                     "task_db"
-                ).build().also {
+                ).fallbackToDestructiveMigration().build().also {
                     INSTANCE=it
                 }
             }

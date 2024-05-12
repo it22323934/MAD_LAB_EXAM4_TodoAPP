@@ -22,7 +22,7 @@ interface TaskDao {
     @Query("DELETE FROM Task WHERE taskId== :taskId")
     suspend fun deleteTaskUsingId(taskId:String):Int
 
-    @Query("UPDATE Task SET taskTitle=:title,description=:description WHERE taskId=:taskId")
-    suspend fun updateTaskParticularFiled(taskId:String,title:String,description:String):Int
+    @Query("UPDATE Task SET level=:level,taskTitle=:title,description=:description WHERE taskId=:taskId")
+    suspend fun updateTaskParticularFiled(taskId:String,level:String,title:String,description:String):Int
 
 }

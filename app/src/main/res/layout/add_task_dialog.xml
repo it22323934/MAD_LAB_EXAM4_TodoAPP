@@ -12,78 +12,97 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
+
         <TextView
             android:id="@+id/titleTaskTxt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
             android:text="New Task"
-            android:textStyle="bold"
-            android:textSize="24sp"/>
+            android:textSize="24sp"
+            android:textStyle="bold" />
+
         <ImageView
             android:id="@+id/closeImg"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:layout_margin="8dp"
             android:layout_alignParentEnd="true"
+            android:layout_margin="8dp"
             android:src="@drawable/baseline_close_24" />
+
         <View
+            android:id="@+id/viewHLIne"
             android:layout_width="match_parent"
             android:layout_height="3dp"
             android:layout_below="@id/titleTaskTxt"
-            android:background="@color/black"
-            android:id="@+id/viewHLIne"/>
+            android:background="@color/black" />
+
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_below="@id/viewHLIne"
-            android:layout_marginVertical="8dp"
             android:layout_centerHorizontal="true"
             android:layout_marginHorizontal="10dp"
+            android:layout_marginVertical="8dp"
             android:orientation="vertical">
-
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/edTaskLevelL"
                 style="@style/Widget.App.TexInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter The Task Title"
-                android:id="@+id/edTaskTitleL">
+                android:hint="Enter The Task Priority Level">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edTaskLevel"
                     android:layout_width="match_parent"
                     android:layout_height="?actionBarSize"
-                    android:id="@+id/edTaskTitle"
-                    android:inputType="text"
-                    android:background="#EAE4E8"/>
+                    android:background="#EAE4E8"
+                    android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/edTaskTitleL"
                 style="@style/Widget.App.TexInputLayout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Enter The Task Description"
-                android:id="@+id/edTaskDescL">
+                android:hint="Enter The Task Title">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edTaskTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="?actionBarSize"
+                    android:background="#EAE4E8"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/edTaskDescL"
+                style="@style/Widget.App.TexInputLayout"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter The Task Description">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edTaskDesc"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="top|start"
-                    android:lines="5"
-                    android:maxLines="5"
-                    android:id="@+id/edTaskDesc"
                     android:background="#EAE4E8"
-                    android:inputType="textMultiLine"/>
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine"
+                    android:lines="5"
+                    android:maxLines="5" />
             </com.google.android.material.textfield.TextInputLayout>
+
             <Button
                 android:id="@+id/saveTaskBtn"
+                style="@style/Widget.App.Button.Fill"
                 android:layout_width="wrap_content"
                 android:layout_height="?actionBarSize"
                 android:layout_gravity="center"
-                android:text="Save Task"
-                style="@style/Widget.App.Button.Fill"
-                android:textSize="20sp"
+                android:layout_marginTop="4dp"
                 android:backgroundTint="@color/black"
-                android:layout_marginTop="4dp"/>
+                android:text="Save Task"
+                android:textSize="20sp" />
         </LinearLayout>
     </RelativeLayout>
 

@@ -27,6 +27,7 @@ import com.example.todoapp.utils.setupDialog
 import com.example.todoapp.utils.validateEditText
 import com.example.todoapp.utils.validatePriority
 import com.example.todoapp.viewmodals.TaskViewModal
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.internal.ViewUtils
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
@@ -241,9 +242,10 @@ class MainActivity : AppCompatActivity() {
         }
         mainBinding.taskRV.adapter = taskRecyclerViewAdapter
         callGetTaskList(taskRecyclerViewAdapter)
-        taskViewModal.getTaskList()
+        callSortByLiveData()
         statusCallBack()
         callSearch()
+        callSortByDialog()
     }
 
     private fun statusCallBack() {
@@ -299,7 +301,7 @@ class MainActivity : AppCompatActivity() {
                 if (query.toString().isNotEmpty()){
                     taskViewModal.searchTaskList(query.toString())
                 }else{
-                    taskViewModal.getTaskList()
+                    callSortByLiveData()
                 }
             }
         })
@@ -311,7 +313,53 @@ class MainActivity : AppCompatActivity() {
             }
             false
         }
+
+        callSortByDialog()
     }
+
+    private fun callSortByLiveData(){
+        taskViewModal.sortByLiveData.observe(this){
+            taskViewModal.getTaskList(it.second,it.first)
+        }
+    }
+
+    private fun callSortByDialog() {
+        var checkedItem = 0   // 2 is default item set
+        val items = arrayOf("Title Ascending", "Title Descending","Date Ascending","Date Descending","High","Medium")
+
+        mainBinding.sortImg.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle("Sort By")
+                .setPositiveButton("Ok") { _, _ ->
+                    when (checkedItem) {
+                        0 -> {
+                            taskViewModal.setSortedBy(Pair("title",true))
+                        }
+                        1 -> {
+                            taskViewModal.setSortedBy(Pair("title",false))
+                        }
+                        2 -> {
+                            taskViewModal.setSortedBy(Pair("date",true))
+                        }
+                        3 -> {
+                            taskViewModal.setSortedBy(Pair("date",false))
+                        }
+                        4 -> {
+                            taskViewModal.setSortedBy(Pair("level",false))
+                        }
+                        else->{
+                            taskViewModal.setSortedBy(Pair("level",true))
+                        }
+                    }
+                }
+                .setSingleChoiceItems(items, checkedItem) { _, selectedItemIndex ->
+                    checkedItem = selectedItemIndex
+                }
+                .setCancelable(false)
+                .show()
+        }
+    }
+
 
     private fun callGetTaskList(taskRecyclerViewAdapter: TaskRVViewBindingAdapter) {
         CoroutineScope(Dispatchers.Main).launch {

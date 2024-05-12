@@ -30,13 +30,27 @@ class TaskRepository(application: Application) {
     val statusLiveData:LiveData<Resource<StatusResult>>
         get()=_statusLiveData
 
+    private val _sortByLiveData=MutableLiveData<Pair<String,Boolean>>().apply {
+        postValue(Pair("title",true))
+    }
+    val sortByLiveData:LiveData<Pair<String,Boolean>>
+        get()= _sortByLiveData
 
-    fun getTaskList(){
+    fun setSortedBy(sort:Pair<String,Boolean>){
+        _sortByLiveData.postValue(sort)
+    }
+    fun getTaskList(isAsc:Boolean,sortByName: String){
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 _taskStateFlow.emit(Loading())
                 delay(500)
-                val result = taskDao.getTaskList()
+                val result=if(sortByName=="title"){
+                    taskDao.getTaskListSortByTaskTitle(isAsc)
+                }else if (sortByName=="date"){
+                    taskDao.getTaskListSortByTaskDate(isAsc)
+                } else {
+                    taskDao.getTaskListSortByTaskPriority(isAsc)
+                }
                 _taskStateFlow.emit(Success("loading", result))
 
             } catch (e: Exception) {

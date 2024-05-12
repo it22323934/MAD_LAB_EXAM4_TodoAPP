@@ -12,8 +12,11 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.RecyclerView
 import androidx.room.util.query
+import com.example.todoapp.adapters.TaskRVVBListAdapter
 import com.example.todoapp.adapters.TaskRVViewBindingAdapter
 import com.example.todoapp.databinding.ActivityMainBinding
 import com.example.todoapp.models.Task
@@ -198,7 +201,7 @@ class MainActivity : AppCompatActivity() {
 
         val updateTaskBtn = updateTaskDialog.findViewById<Button>(R.id.updateTaskBtn)
 
-        val taskRecyclerViewAdapter = TaskRVViewBindingAdapter(this) { type, position, task ->
+        val taskRVVBListAdapter = TaskRVVBListAdapter(this) { type, position, task ->
             if (type == "delete") {
                 //deletes task
                 taskViewModal.deleteTaskUsingID(task.id)
@@ -240,8 +243,16 @@ class MainActivity : AppCompatActivity() {
                 updateTaskDialog.show()
             }
         }
-        mainBinding.taskRV.adapter = taskRecyclerViewAdapter
-        callGetTaskList(taskRecyclerViewAdapter)
+        mainBinding.taskRV.adapter = taskRVVBListAdapter
+        ViewCompat.setNestedScrollingEnabled(mainBinding.taskRV,false)
+
+        taskRVVBListAdapter.registerAdapterDataObserver(object:RecyclerView.AdapterDataObserver(){
+            override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+                super.onItemRangeInserted(positionStart, itemCount)
+                mainBinding.nestedScrollView.smoothScrollTo(0,positionStart)
+            }
+        })
+        callGetTaskList(taskRVVBListAdapter)
         callSortByLiveData()
         statusCallBack()
         callSearch()
@@ -361,7 +372,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    private fun callGetTaskList(taskRecyclerViewAdapter: TaskRVViewBindingAdapter) {
+    private fun callGetTaskList(taskRecyclerViewAdapter: TaskRVVBListAdapter) {
         CoroutineScope(Dispatchers.Main).launch {
             taskViewModal.taskStateFlow.collectLatest {
                 when (it.status) {
@@ -372,7 +383,7 @@ class MainActivity : AppCompatActivity() {
                     Status.SUCCESS -> {
                         it.data?.collect { taskList ->
                             loadingDialog.dismiss()
-                            taskRecyclerViewAdapter.addAllTask(taskList)
+                            taskRecyclerViewAdapter.submitList(taskList)
                         }
 
                     }

@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.MutableLiveData
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.todoapp.R
 import com.example.todoapp.databinding.ViewTaskLayoutBinding
@@ -12,22 +14,16 @@ import com.example.todoapp.models.Task
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class TaskRVViewBindingAdapter(
+class TaskRVVBListAdapter(
     private val context: Context,
-    private val isList:MutableLiveData<Boolean>,
     private val deleteUpdateCallBack: (type: String, position: Int, task: Task) -> Unit
-) : RecyclerView.Adapter<TaskRVViewBindingAdapter.ViewHolder>() {
+) : ListAdapter<Task,TaskRVVBListAdapter.ViewHolder>(DiffCallBack()) {
 
-    private val taskList = mutableListOf<Task>()
+
 
     inner class ViewHolder(val viewTaskLayoutBinding: ViewTaskLayoutBinding) :
         RecyclerView.ViewHolder(viewTaskLayoutBinding.root)
 
-    fun addAllTask(newTaskList: List<Task>) {
-        taskList.clear()
-        taskList.addAll(newTaskList)
-        notifyDataSetChanged()
-    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
@@ -36,7 +32,7 @@ class TaskRVViewBindingAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val task = taskList[position]
+        val task =getItem(position)
         val binding = holder.viewTaskLayoutBinding
 
         binding.titleTxt.text = task.title
@@ -71,5 +67,15 @@ class TaskRVViewBindingAdapter(
         }
     }
 
-    override fun getItemCount(): Int = taskList.size
+
+    class DiffCallBack:DiffUtil.ItemCallback<Task>(){
+        override fun areItemsTheSame(oldItem: Task, newItem: Task): Boolean {
+         return  oldItem.id==newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: Task, newItem: Task): Boolean {
+         return  oldItem==newItem
+        }
+
+    }
 }

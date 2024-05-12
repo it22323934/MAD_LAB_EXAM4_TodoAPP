@@ -1,5 +1,6 @@
 package com.example.todoapp.dao
 
+import android.icu.text.CaseMap.Title
 import androidx.room.*
 import com.example.todoapp.models.Task
 import kotlinx.coroutines.flow.Flow
@@ -20,5 +21,8 @@ interface TaskDao {
 
     @Query("DELETE FROM Task WHERE taskId== :taskId")
     suspend fun deleteTaskUsingId(taskId:String):Int
+
+    @Query("UPDATE Task SET taskTitle=:title,description=:description WHERE taskId=:taskId")
+    suspend fun updateTaskParticularFiled(taskId:String,title:String,description:String):Int
 
 }

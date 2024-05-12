@@ -17,4 +17,8 @@ class TaskViewModal(application: Application):AndroidViewModel(application) {
         return taskRepository.insertTask(task)
     }
 
+    fun deleteTaskUsingID(taskId:String):MutableLiveData<Resource<Int>>{
+        return taskRepository.deleteTaskUsingID(taskId)
+    }
+
 }

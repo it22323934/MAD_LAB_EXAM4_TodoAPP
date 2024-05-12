@@ -55,7 +55,29 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val taskRecyclerViewAdapter:TaskRecyclerViewAdapter by lazy{
-        TaskRecyclerViewAdapter()
+        TaskRecyclerViewAdapter{
+            position, task ->
+            taskViewModal.deleteTaskUsingID(task.id)
+                .observe(this){
+                    when (it.status) {
+                        Status.LOADING -> {
+                            loadingDialog.show()
+                        }
+
+                        Status.SUCCESS -> {
+                            loadingDialog.dismiss()
+                            if (it.data != -1) {
+                                LongToastShow("The task is delete successfully")
+                            }
+                        }
+
+                        Status.ERROR -> {
+                            loadingDialog.dismiss()
+                            it.message?.let { it1 -> LongToastShow(it1) }
+                        }
+                    }
+                }
+        }
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

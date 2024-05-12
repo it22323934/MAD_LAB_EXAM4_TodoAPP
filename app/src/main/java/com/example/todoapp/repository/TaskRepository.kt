@@ -38,4 +38,16 @@ class TaskRepository(application: Application) {
             postValue(Error(e.message.toString()))
         }
     }
+
+    fun deleteTaskUsingID(taskId:String)=MutableLiveData<Resource<Int>>().apply {
+        postValue(Loading())
+        try {
+            CoroutineScope(Dispatchers.IO).launch {
+                val result=taskDao.deleteTaskUsingId(taskId)
+                postValue(Success(result))
+            }
+        }catch (e:Exception){
+            postValue(Error(e.message.toString()))
+        }
+    }
 }

@@ -25,4 +25,7 @@ interface TaskDao {
     @Query("UPDATE Task SET level=:level,taskTitle=:title,description=:description WHERE taskId=:taskId")
     suspend fun updateTaskParticularFiled(taskId:String,level:String,title:String,description:String):Int
 
+    @Query("SELECT * FROM Task WHERE taskTitle LIKE :query ORDER BY date DESC")
+    fun searchTaskList(query: String) : Flow<List<Task>>
+
 }

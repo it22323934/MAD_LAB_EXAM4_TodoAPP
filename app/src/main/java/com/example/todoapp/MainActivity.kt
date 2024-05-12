@@ -1,28 +1,39 @@
 package com.example.todoapp
 
+import android.annotation.SuppressLint
 import android.app.Dialog
+import android.content.SharedPreferences.Editor
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
+import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import androidx.room.util.query
 import com.example.todoapp.adapters.TaskRVViewBindingAdapter
 import com.example.todoapp.databinding.ActivityMainBinding
 import com.example.todoapp.models.Task
 import com.example.todoapp.utils.LongToastShow
 import com.example.todoapp.utils.Status
+import com.example.todoapp.utils.StatusResult
+import com.example.todoapp.utils.StatusResult.*
 import com.example.todoapp.utils.clearEditText
+import com.example.todoapp.utils.hideKeyBoard
 import com.example.todoapp.utils.setupDialog
 import com.example.todoapp.utils.validateEditText
 import com.example.todoapp.utils.validatePriority
 import com.example.todoapp.viewmodals.TaskViewModal
+import com.google.android.material.internal.ViewUtils
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.util.AbstractQueue
 import java.util.Date
 import java.util.UUID
 
@@ -50,6 +61,7 @@ class MainActivity : AppCompatActivity() {
         ViewModelProvider(this)[TaskViewModal::class.java]
     }
 
+    @SuppressLint("RestrictedApi")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(mainBinding.root)
@@ -124,7 +136,6 @@ class MainActivity : AppCompatActivity() {
                     addETDescL
                 )
             ) {
-                addTaskDialog.dismiss()
                 val newTask = Task(
                     UUID.randomUUID().toString(),
                     addETTitle.text.toString().trim(),
@@ -132,25 +143,9 @@ class MainActivity : AppCompatActivity() {
                     addTaskLevel.text.toString().trim(),
                     Date()
                 )
-                taskViewModal.insertTask(newTask).observe(this) {
-                    when (it.status) {
-                        Status.LOADING -> {
-                            loadingDialog.show()
-                        }
-
-                        Status.SUCCESS -> {
-                            loadingDialog.dismiss()
-                            if (it.data?.toInt() != -1) {
-                                LongToastShow("The task is added successfully")
-                            }
-                        }
-
-                        Status.ERROR -> {
-                            loadingDialog.dismiss()
-                            it.message?.let { it1 -> LongToastShow(it1) }
-                        }
-                    }
-                }
+                hideKeyBoard(it)
+                addTaskDialog.dismiss()
+                taskViewModal.insertTask(newTask)
             }
         }
 
@@ -203,25 +198,6 @@ class MainActivity : AppCompatActivity() {
         val taskRecyclerViewAdapter = TaskRVViewBindingAdapter(this) { type, position, task ->
             if (type == "delete") {
                 taskViewModal.deleteTaskUsingID(task.id)
-                    .observe(this) {
-                        when (it.status) {
-                            Status.LOADING -> {
-                                loadingDialog.show()
-                            }
-
-                            Status.SUCCESS -> {
-                                loadingDialog.dismiss()
-                                if (it.data != -1) {
-                                    LongToastShow("The task is deleted successfully")
-                                }
-                            }
-
-                            Status.ERROR -> {
-                                loadingDialog.dismiss()
-                                it.message?.let { it1 -> LongToastShow(it1) }
-                            }
-                        }
-                    }
             } else if (type == "update") {
                 updateTaskLevel.setText(task.level)
                 updateETTitle.setText(task.title)
@@ -243,8 +219,8 @@ class MainActivity : AppCompatActivity() {
                             updateETDesc.text.toString().trim(),
                             Date()
                         )
+                        hideKeyBoard(it)
                         updateTaskDialog.dismiss()
-                        loadingDialog.show()
                         taskViewModal
                             .updateParticularTaskField(
                                 task.id,
@@ -252,25 +228,7 @@ class MainActivity : AppCompatActivity() {
                                 updateETTitle.text.toString().trim(),
                                 updateETDesc.text.toString().trim(),
                             )
-                            .observe(this) {
-                                when (it.status) {
-                                    Status.LOADING -> {
-                                        loadingDialog.show()
-                                    }
 
-                                    Status.SUCCESS -> {
-                                        loadingDialog.dismiss()
-                                        if (it.data != -1) {
-                                            LongToastShow("The task is updated successfully")
-                                        }
-                                    }
-
-                                    Status.ERROR -> {
-                                        loadingDialog.dismiss()
-                                        it.message?.let { it1 -> LongToastShow(it1) }
-                                    }
-                                }
-                            }
                     }
                 }
                 updateTaskDialog.show()
@@ -278,12 +236,69 @@ class MainActivity : AppCompatActivity() {
         }
         mainBinding.taskRV.adapter = taskRecyclerViewAdapter
         callGetTaskList(taskRecyclerViewAdapter)
+        taskViewModal.getTaskList()
+        statusCallBack()
+        callSearch()
+    }
+
+    private fun statusCallBack() {
+        taskViewModal.statusLiveData.observe(this){
+            when (it.status) {
+                Status.LOADING -> {
+                    loadingDialog.show()
+                }
+
+                Status.SUCCESS -> {
+                    loadingDialog.dismiss()
+                    when(it.data as StatusResult){
+                        Added->{
+                            Log.d("StatusResult","inserted")
+                        }
+                        Deleted->{
+                            Log.d("StatusResult","deleted")
+                        }
+                        Updated->{
+                            Log.d("StatusResult","updated")
+                        }
+                    }
+                    it.message?.let { it1 -> LongToastShow(it1) }
+                }
+
+                Status.ERROR -> {
+                    loadingDialog.dismiss()
+                    it.message?.let { it1 -> LongToastShow(it1) }
+                }
+            }
+        }
+    }
+
+    private fun callSearch() {
+        mainBinding.edSearch.addTextChangedListener(object : TextWatcher{
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {}
+
+            override fun afterTextChanged(query: Editable) {
+                if (query.toString().isNotEmpty()){
+                    taskViewModal.searchTaskList(query.toString())
+                }else{
+                    taskViewModal.getTaskList()
+                }
+            }
+        })
+
+        mainBinding.edSearch.setOnEditorActionListener{ v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH){
+                hideKeyBoard(v)
+                return@setOnEditorActionListener true
+            }
+            false
+        }
     }
 
     private fun callGetTaskList(taskRecyclerViewAdapter: TaskRVViewBindingAdapter) {
         CoroutineScope(Dispatchers.Main).launch {
-            loadingDialog.show()
-            taskViewModal.getTaskList().collect {
+            taskViewModal.taskStateFlow.collectLatest {
                 when (it.status) {
                     Status.LOADING -> {
                         loadingDialog.show()

@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
+import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ImageView
@@ -27,6 +28,7 @@ import com.example.todoapp.utils.validateEditText
 import com.example.todoapp.utils.validatePriority
 import com.example.todoapp.viewmodals.TaskViewModal
 import com.google.android.material.internal.ViewUtils
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import kotlinx.coroutines.CoroutineScope
@@ -197,7 +199,10 @@ class MainActivity : AppCompatActivity() {
 
         val taskRecyclerViewAdapter = TaskRVViewBindingAdapter(this) { type, position, task ->
             if (type == "delete") {
+                //deletes task
                 taskViewModal.deleteTaskUsingID(task.id)
+                //restore Deleted task
+                restoreDeletedTask(task)
             } else if (type == "update") {
                 updateTaskLevel.setText(task.level)
                 updateETTitle.setText(task.title)
@@ -270,6 +275,18 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
+    }
+
+    private fun restoreDeletedTask(deletedTask:Task){
+        val snackbar=Snackbar.make(
+            mainBinding.root,"Deleted ${deletedTask.title}",
+            Snackbar.LENGTH_LONG
+        )
+        snackbar.setAction("Undo"){
+            taskViewModal.insertTask(deletedTask)
+        }
+        snackbar.show()
+
     }
 
     private fun callSearch() {

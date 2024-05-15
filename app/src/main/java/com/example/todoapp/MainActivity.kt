@@ -2,22 +2,21 @@ package com.example.todoapp
 
 import android.annotation.SuppressLint
 import android.app.Dialog
-import android.content.SharedPreferences.Editor
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
-import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.Button
 import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModelProvider
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.room.util.query
+import androidx.recyclerview.widget.StaggeredGridLayoutManager
 import com.example.todoapp.adapters.TaskRVVBListAdapter
-import com.example.todoapp.adapters.TaskRVViewBindingAdapter
 import com.example.todoapp.databinding.ActivityMainBinding
 import com.example.todoapp.models.Task
 import com.example.todoapp.utils.LongToastShow
@@ -31,7 +30,6 @@ import com.example.todoapp.utils.validateEditText
 import com.example.todoapp.utils.validatePriority
 import com.example.todoapp.viewmodals.TaskViewModal
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.internal.ViewUtils
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -39,7 +37,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import java.util.AbstractQueue
 import java.util.Date
 import java.util.UUID
 
@@ -67,7 +64,10 @@ class MainActivity : AppCompatActivity() {
         ViewModelProvider(this)[TaskViewModal::class.java]
     }
 
-    @SuppressLint("RestrictedApi")
+    private val isListMutableLiveData=MutableLiveData<Boolean>().apply {
+        postValue(true)
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(mainBinding.root)
@@ -201,7 +201,25 @@ class MainActivity : AppCompatActivity() {
 
         val updateTaskBtn = updateTaskDialog.findViewById<Button>(R.id.updateTaskBtn)
 
-        val taskRVVBListAdapter = TaskRVVBListAdapter(this) { type, position, task ->
+        isListMutableLiveData.observe(this){
+            if (it){
+                mainBinding.taskRV.layoutManager = LinearLayoutManager(
+                    this,LinearLayoutManager.VERTICAL,false
+                )
+                mainBinding.listOrGridImg.setImageResource(R.drawable.baseline_grid_view_24)
+            }else{
+                mainBinding.taskRV.layoutManager = StaggeredGridLayoutManager(
+                    2,LinearLayoutManager.VERTICAL
+                )
+                mainBinding.listOrGridImg.setImageResource(R.drawable.baseline_list_alt_24)
+            }
+        }
+
+        mainBinding.listOrGridImg.setOnClickListener {
+            isListMutableLiveData.postValue(!isListMutableLiveData.value!!)
+        }
+
+        val taskRVVBListAdapter = TaskRVVBListAdapter(this,isListMutableLiveData) { type, position, task ->
             if (type == "delete") {
                 //deletes task
                 taskViewModal.deleteTaskUsingID(task.id)
